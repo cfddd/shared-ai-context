@@ -40,7 +40,7 @@ class CliTests(unittest.TestCase):
         created = self.run_cli("new", "导出修复", "--project", "/project", "--json")
         self.assertEqual(created.returncode, 0, created.stderr)
         session_id = json.loads(created.stdout)["data"]["id"]
-        body = "\n# 目标\n保留中文与空白。\n\n下一步：检查导出。  \n"
+        body = "\r\n# 目标\r\n保留中文与空白。\r\n\r\n下一步：检查导出。  \r\n"
         source = self.root / "handoff.md"
         source.write_text(body, encoding="utf-8")
         written = self.run_cli(
@@ -75,7 +75,7 @@ class CliTests(unittest.TestCase):
         for index in range(2):
             result = self.run_cli(
                 "write", session_id, "--title", f"记录{index}", "--stdin", "--json",
-                body=f"private-body-{index}",
+                body=f"private-body-{index}\r\n",
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             saved.append(json.loads(result.stdout)["data"]["record_id"])
@@ -87,7 +87,7 @@ class CliTests(unittest.TestCase):
         listing = self.run_cli("list", "--json")
         self.assertNotIn("private-body", listing.stdout)
         old = self.run_cli("read", session_id, saved[0], "--json")
-        self.assertEqual(json.loads(old.stdout)["data"]["body"], "private-body-0")
+        self.assertEqual(json.loads(old.stdout)["data"]["body"], "private-body-0\r\n")
 
     def test_invalid_external_input_fails_before_storage(self) -> None:
         cases = [

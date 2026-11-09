@@ -67,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         args = parser.parse_args(argv)
         if args.command == "write":
             try:
-                body = args.file.read_text(encoding="utf-8") if args.file else sys.stdin.read()
+                body = (args.file.read_bytes() if args.file else sys.stdin.buffer.read()).decode("utf-8")
             except (OSError, UnicodeError) as error:
                 parser.error(f"无法读取 UTF-8 正文：{error}")
             if not body.strip():
