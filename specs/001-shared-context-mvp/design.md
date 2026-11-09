@@ -66,18 +66,42 @@ flowchart LR
 ## 3. 共用 Interface
 
 ```python
-Context(db_path)
+Context(db_path: Path)
 
-create_session(title, project_path=None) -> Session
-list_sessions(limit=20) -> list[Session]
-append_record(session_id, title, body, kind="share", author=None) -> RecordSummary
-list_records(session_id, limit=20) -> list[RecordSummary]
-get_record(session_id, record_id) -> Record
+create_session(title: str, project_path: str | None = None) -> Session
+list_sessions(limit: int = 20) -> list[Session]
+append_record(session_id: str, title: str, body: str,
+              kind: RecordKind = "share", author: str | None = None) -> RecordSummary
+list_records(session_id: str, limit: int = 20) -> list[RecordSummary]
+get_record(session_id: str, record_id: str) -> Record
 ```
 
-以上展示计划接口含义；实际实现补齐类型标注。核心不读取终端、不打印、不依赖 CLI 或 MCP SDK。数据库路径由入口解析并校验后明确传入。
+`Path` 指 `pathlib.Path`；`RecordKind` 为 `Literal["share", "handoff"]`。`Context` 与下述两种业务异常从 `shared_ai_context.context` 导入，结果类型从 `shared_ai_context.models` 导入。
 
-团队计划已获确认。建立基线与独立 worktree 后，Worker A 与 Worker B 首先在本节固定 `Session`、`RecordSummary`、`Record` 的结果字段名和类型、JSON 映射、错误类别、校验归属及连接生命周期。Reviewer 审查通过后，B 才据此依赖核心；不新增契约框架或类型代码草案。
+核心不读取终端、不打印、不依赖 CLI 或 MCP SDK。数据库路径由入口解析并校验后明确传入。以下是 A/B 已对齐的 P1 契约候选；Reviewer 通过并同步同一文档 commit 后开始实现。
+
+### 结果字段
+
+| 类型 | 字段与类型 |
+| --- | --- |
+| `Session` | `id: str`、`title: str`、`project_path: str \| None`、`created_at: str` |
+| `RecordSummary` | `id: str`、`session_id: str`、`title: str`、`kind: RecordKind`、`author: str \| None`、`created_at: str` |
+| `Record` | `RecordSummary` 的全部字段，加 `body: str` |
+
+ID 为完整 UUID 字符串；`created_at` 为包含 UTC 时区的 ISO 8601 字符串，可直接用于 JSON。结果采用具名数据类型；`RecordSummary` 不包含正文。`project_path` 只是可选定位文字，不检查所指文件是否存在。
+
+### 资源生命周期与错误
+
+`Context(db_path)` 只保留路径，不在构造时打开连接或建库。入口先创建数据目录；核心的每个操作按需连接并建立初版表，在返回前提交写入并关闭连接。`Context` 不持有跨调用连接，调用者不需要 `close()` 或 `with Context(...)`。
+
+| 来源 | Python 表达 | CLI 错误代码与退出码 |
+| --- | --- | --- |
+| CLI 参数或正文、输入文件错误 | 入口校验结果 | `INVALID_INPUT`，2 |
+| 核心会话业务查询 | `SessionNotFound` 异常 | `SESSION_NOT_FOUND`，1 |
+| 核心记录及归属查询 | `RecordNotFound` 异常 | `RECORD_NOT_FOUND`，1 |
+| SQLite 或数据目录创建失败 | `sqlite3.Error` 或目录创建的 `OSError` 直达入口 | `STORAGE_ERROR`，1 |
+
+核心只定义上述两种业务异常；SQLite 异常不在内部捕获或包装。输入文件不可读属于 `INVALID_INPUT`，数据目录创建失败属于 `STORAGE_ERROR`，CLI 在实际操作位置作必要区分。
 
 ### 入口与内部责任
 
@@ -133,7 +157,8 @@ CLI 只在外部数据进入时检查标题、正文、数量、用途、输入�
 
 - 默认文本模式便于用户查看；JSON 模式供 agent 稳定消费。
 - JSON 模式的 stdout 只返回一个结果对象，诊断进入 stderr。成功为退出码 0；输入错误为 2；其他预期失败为 1。
-- 成功对象固定为 `{"database_path": "绝对路径", "data": ...}`。`new` 返回会话元信息，`list` 返回会话元信息数组，`write` 返回记录元信息和引用，`history` 返回记录元信息数组，`read` 才返回包含正文的记录。
+- 成功对象固定为 `{"database_path": "绝对路径", "data": ...}`。`new` 的 `data` 对应 `Session` 字段，`list` 为其数组；`history` 对应 `RecordSummary` 字段数组，`read` 对应 `Record` 字段。字段按上述名称直接映射，不增加另一套对象结构。
+- `write` 的 `data` 对应 `RecordSummary`，只把 `id` 改名为 `record_id`，保留 `session_id`、`title`、`kind`、`author`、`created_at`；不同时返回同义的 `id` 或嵌套 `reference`，不回显正文。用途为 `handoff` 时，额外返回 `resume_prompt`，内容为 `sctx read SESSION_ID RECORD_ID --json`，使用本次确切引用。
 - 失败对象固定为 `{"error": {"code": "...", "message": "..."}}`，并使用非零退出码。在指定 `--json` 时，参数解析、互斥输入和输入文件不可读等预期入口错误也遵循此格式，使用 `INVALID_INPUT`；核心业务错误沿用其类别，实际 SQLite 失败或创建数据目录时的 `OSError` 在这里转换成 `STORAGE_ERROR`。只对呈现这些预期失败作必要捕获，不兜住程序缺陷。失败信息不夹带正文或无关上下文。
 - 长正文从 UTF-8 文件或 stdin 输入；两者互斥。接入示例优先使用文件，不让 agent 将大段 Markdown 拼进 shell 参数。
 - CLI 读取正文后调用同一 `append_record`；不自行写数据库。
