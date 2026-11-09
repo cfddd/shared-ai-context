@@ -30,7 +30,6 @@ shared-ai-context/
     __main__.py
     models.py
     context.py
-    _sqlite.py
     cli.py
   tests/
     test_context.py
@@ -42,8 +41,7 @@ shared-ai-context/
 | Module | Interface 与职责 | 内部隐藏的细节 |
 | --- | --- | --- |
 | `models.py` | `Session`、`Record`、`RecordSummary` 等少量具名结果 | 不依赖 SQLite、终端或 MCP |
-| `context.py` | 共用 `Context` Interface；标识和时间生成、会话存在性、记录归属、查询范围 | SQL 与事务细节；内部依赖入口已校验的调用契约 |
-| `_sqlite.py` | 私有具体 SQLite Adapter，供核心调用 | 建表、SQL、连接、事务、行到结果的映射 |
+| `context.py` | 共用 `Context` Interface；标识和时间生成、会话存在性、记录归属、查询范围及具体 SQLite 存取 | 建表、SQL、连接、事务、行到结果的映射；内部依赖入口已校验的调用契约 |
 | `cli.py` | 外部输入的一次校验、stdin/文件读取、文本/JSON 输出、预期失败转换与退出码 | 不拥有记录归属等业务规则，不直接执行 SQL |
 
 `__main__.py` 仅启动 CLI。`__init__.py` 仅定义包表面，不在导入时建库、读环境或输出日志。
@@ -53,15 +51,13 @@ flowchart LR
     Main[__main__] --> CLI[cli]
     CLI --> Core[context]
     MCP[未来可选 mcp_server] -.-> Core
-    Core --> DB[_sqlite]
     Core --> Models[models]
-    DB --> Models
-    DB --> SQLite[(SQLite)]
+    Core --> SQLite[(SQLite)]
 ```
 
-核心 Interface 是入口及测试共用的 Seam。SQLite Adapter 直接使用具体实现，不预建多数据库接口、BaseRepository 或替换系统。
+核心 Interface 是入口及测试共用的 Seam。当前 SQLite 存取直接放在 `context.py` 内，不预建多数据库接口、BaseRepository 或替换系统。
 
-`context.py` 应集中承载行为，而非逐方法转发。如果实现时它只剩转发，Worker A 可合并没有独立职责的内部文件，无需为了目录形式保留拆分；对 CLI 的小公共 Interface 保持一致。公共契约变动按团队计划协调。
+创建和查询所需规则、SQL 与事务集中在同一 Module，避免五个方法在两层逐一转发。将来出现实际变化点再拆内部实现，对 CLI 的小公共 Interface 保持一致。公共契约变动按团队计划协调。
 
 ## 3. 共用 Interface
 
@@ -78,7 +74,7 @@ get_record(session_id: str, record_id: str) -> Record
 
 `Path` 指 `pathlib.Path`；`RecordKind` 为 `Literal["share", "handoff"]`。`Context` 与下述两种业务异常从 `shared_ai_context.context` 导入，结果类型从 `shared_ai_context.models` 导入。
 
-核心不读取终端、不打印、不依赖 CLI 或 MCP SDK。数据库路径由入口解析并校验后明确传入。以下是 A/B 已对齐的 P1 契约候选；Reviewer 通过并同步同一文档 commit 后开始实现。
+核心不读取终端、不打印、不依赖 CLI 或 MCP SDK。数据库路径由入口解析并校验后明确传入。以下是 A/B 共用契约，变更按团队计划协调。
 
 ### 结果字段
 
