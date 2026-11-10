@@ -6,6 +6,8 @@
 
 首版接口是 CLI `sctx`。实现与验收的实际状态见 [任务清单](specs/001-shared-context-mvp/tasks.md)、[验收记录](specs/001-shared-context-mvp/acceptance.md) 和 [团队记录](docs/TEAM.md)。MCP 可以后续作为同一核心的另一个入口，当前不包含 MCP server。
 
+通过 agent 使用时，安装配置与原子操作分别使用独立 Skill，见 [Skill 用法](skills/README.md)。正式文件与平台副本的位置见 [文件归属](docs/FILES.md)。
+
 ## 安装
 
 需要 Python 3.10 或以上。在项目目录执行：
