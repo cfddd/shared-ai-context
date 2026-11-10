@@ -11,7 +11,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from .models import Record, RecordKind, RecordSummary, Session
+from .models import (
+    ContextDetail,
+    ContextIndex,
+    ContextSummary,
+    Record,
+    RecordKind,
+    RecordSummary,
+    Session,
+)
 
 
 _SCHEMA = """
@@ -32,6 +40,14 @@ CREATE TABLE IF NOT EXISTS records (
 );
 CREATE INDEX IF NOT EXISTS records_session_created
     ON records(session_id, created_at DESC, id DESC);
+CREATE TABLE IF NOT EXISTS contexts (
+    scope TEXT NOT NULL,
+    key TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    body TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (scope, key)
+);
 """
 
 
@@ -41,6 +57,10 @@ class SessionNotFound(Exception):
 
 class RecordNotFound(Exception):
     """The record does not exist in the requested session."""
+
+
+class ContextNotFound(Exception):
+    """The requested current context does not exist."""
 
 
 class Context:
@@ -128,6 +148,49 @@ class Context:
         if row is None:
             raise RecordNotFound(f"Record not found in session: {record_id}")
         return Record(**dict(row))
+
+    def put_context(
+        self, scope: str, key: str, summary: str, body: str
+    ) -> ContextIndex:
+        index = ContextIndex(
+            scope=scope,
+            key=key,
+            updated_at=datetime.now(timezone.utc).isoformat(),
+        )
+        with self._connection() as connection:
+            connection.execute(
+                "INSERT INTO contexts (scope, key, summary, body, updated_at) "
+                "VALUES (?, ?, ?, ?, ?) "
+                "ON CONFLICT (scope, key) DO UPDATE SET "
+                "summary = excluded.summary, body = excluded.body, "
+                "updated_at = excluded.updated_at",
+                (index.scope, index.key, summary, body, index.updated_at),
+            )
+        return index
+
+    def list_contexts(self, scope: str, limit: int = 20) -> list[ContextIndex]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT scope, key, updated_at FROM contexts WHERE scope = ? "
+                "ORDER BY key ASC LIMIT ?",
+                (scope, limit),
+            ).fetchall()
+        return [ContextIndex(**dict(row)) for row in rows]
+
+    def get_context(
+        self, scope: str, key: str, detail: bool = False
+    ) -> ContextSummary | ContextDetail:
+        field = "body" if detail else "summary"
+        with self._connection() as connection:
+            row = connection.execute(
+                f"SELECT scope, key, updated_at, {field} FROM contexts "
+                "WHERE scope = ? AND key = ?",
+                (scope, key),
+            ).fetchone()
+        if row is None:
+            raise ContextNotFound(f"Context not found: {scope}/{key}")
+        result_type = ContextDetail if detail else ContextSummary
+        return result_type(**dict(row))
 
     @contextmanager
     def _connection(self) -> Iterator[sqlite3.Connection]:

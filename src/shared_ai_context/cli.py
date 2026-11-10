@@ -8,7 +8,7 @@ from pathlib import Path
 import sqlite3
 import sys
 
-from .context import Context, RecordNotFound, SessionNotFound
+from .context import Context, ContextNotFound, RecordNotFound, SessionNotFound
 
 
 class Parser(argparse.ArgumentParser):
@@ -60,12 +60,41 @@ def main(argv: list[str] | None = None) -> int:
     read = commands.add_parser("read", help="读取确切记录")
     read.add_argument("session_id")
     read.add_argument("record_id")
-    for command in (new, listing, write, history, read):
+    current = commands.add_parser("context", help="保存和读取可覆写的当前上下文")
+    context_commands = current.add_subparsers(dest="context_command", required=True)
+    put = context_commands.add_parser("put", help="完整覆写指定范围与主题的当前内容")
+    put.add_argument("scope")
+    put.add_argument("key")
+    put.add_argument("--summary", required=True)
+    context_source = put.add_mutually_exclusive_group(required=True)
+    context_source.add_argument("--file", type=Path)
+    context_source.add_argument("--stdin", action="store_true")
+    context_listing = context_commands.add_parser("list", help="列出指定范围的上下文索引")
+    context_listing.add_argument("scope")
+    context_listing.add_argument("--limit", type=positive_limit, default=20)
+    get = context_commands.add_parser("get", help="读取摘要，或用 --detail 读取正文")
+    get.add_argument("scope")
+    get.add_argument("key")
+    get.add_argument("--detail", action="store_true")
+    for command in (new, listing, write, history, read, put, context_listing, get):
         command.add_argument("--json", action="store_true", help="输出一个 JSON 结果对象")
 
     try:
         args = parser.parse_args(argv)
-        if args.command == "write":
+        if args.command == "context":
+            scope_kind, _, scope_id = args.scope.partition(":")
+            if args.scope != "user" and (
+                scope_kind not in ("project", "task") or not scope_id.strip()
+            ):
+                parser.error("scope 必须是 user、project:<非空标识> 或 task:<非空标识>")
+            if args.context_command in ("put", "get") and not args.key.strip():
+                parser.error("key 不能为空")
+            if args.context_command == "put" and not args.summary.strip():
+                parser.error("摘要不能为空")
+
+        if args.command == "write" or (
+            args.command == "context" and args.context_command == "put"
+        ):
             try:
                 body = (args.file.read_bytes() if args.file else sys.stdin.buffer.read()).decode("utf-8")
             except (OSError, UnicodeError) as error:
@@ -100,6 +129,13 @@ def main(argv: list[str] | None = None) -> int:
                 )
         elif args.command == "history":
             data = [asdict(record) for record in context.list_records(args.session_id, args.limit)]
+        elif args.command == "context":
+            if args.context_command == "put":
+                data = asdict(context.put_context(args.scope, args.key, args.summary, body))
+            elif args.context_command == "list":
+                data = [asdict(item) for item in context.list_contexts(args.scope, args.limit)]
+            else:
+                data = asdict(context.get_context(args.scope, args.key, args.detail))
         else:
             data = asdict(context.get_record(args.session_id, args.record_id))
     except argparse.ArgumentError as error:
@@ -107,6 +143,8 @@ def main(argv: list[str] | None = None) -> int:
     except (SessionNotFound, RecordNotFound) as error:
         code = "SESSION_NOT_FOUND" if isinstance(error, SessionNotFound) else "RECORD_NOT_FOUND"
         message, status = str(error), 1
+    except ContextNotFound as error:
+        code, message, status = "CONTEXT_NOT_FOUND", str(error), 1
     except (sqlite3.Error, OSError) as error:
         code, message, status = "STORAGE_ERROR", str(error), 1
     else:
@@ -114,10 +152,15 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({"database_path": str(database_path), "data": data}, ensure_ascii=False))
         elif args.command == "read":
             print(data["body"], end="")
+        elif args.command == "context" and args.context_command == "get":
+            print(data["body" if args.detail else "summary"], end="")
         elif isinstance(data, list):
             print(f"database_path: {database_path}")
             for item in data:
-                print(f"{item['id']}\t{item['created_at']}\t{item['title']}")
+                if args.command == "context":
+                    print(f"{item['scope']}\t{item['key']}\t{item['updated_at']}")
+                else:
+                    print(f"{item['id']}\t{item['created_at']}\t{item['title']}")
         else:
             for key, value in data.items():
                 print(f"{key}: {value}")

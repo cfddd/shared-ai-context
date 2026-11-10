@@ -28,3 +28,20 @@ class RecordSummary:
 @dataclass(frozen=True)
 class Record(RecordSummary):
     body: str
+
+
+@dataclass(frozen=True)
+class ContextIndex:
+    scope: str
+    key: str
+    updated_at: str
+
+
+@dataclass(frozen=True)
+class ContextSummary(ContextIndex):
+    summary: str
+
+
+@dataclass(frozen=True)
+class ContextDetail(ContextIndex):
+    body: str
