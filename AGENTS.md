@@ -1,20 +1,21 @@
-# shared-ai-context 协作规则
+# shared-ai-context
 
-用户已确认团队方案；当前阶段与实际证据见 [团队计划](docs/TEAM.md)。按已审接口和文件分工实施，不将阶段批准视为所有工作已经完成。
+本仓库管理个人 Engram 记忆与使用约定。知识资料由外部 `fengdi-kb-agent` 管理；只在需要原文依据时调用它。
 
-## 用户硬规则（本节为项目内唯一权威）
+## 用户硬规则
 
 1. 几乎不可能发生的边界情况不自动防御。确需增加时，先说明发生概率、证据和实现代价，等待用户许可；无法估计概率就说明未知，不编造数字。
 2. 外部数据只在入口校验一次；内部依赖类型和调用契约，禁止多层重复校验。Python 类型标注不等于运行时强制，不因此引入校验框架。
 3. 单次使用逻辑就近内联，不拆无意义 helper。
-4. 非必要不用 `try/catch`（Python 为 `try/except`）；单函数能完成的逻辑不强拆。优先最小可用、可读的实现。
+4. 非必要不用 `try/catch`；单函数能完成的逻辑不强拆。优先最小可用、可读的实现。
 
 ## 按任务读取
 
-- 分工、开始实施、创建 worktree、执行 Git、提交评审或整合前，读取 [团队计划](docs/TEAM.md)，遵守批准状态和文件所有权。
-- 修改产品行为前，读取 [规格](specs/001-shared-context-mvp/spec.md) 及受影响的 [验收场景](specs/001-shared-context-mvp/acceptance.md)。
-- 修改接口、模块或持久化前，读取 [设计](specs/001-shared-context-mvp/design.md)；按 [任务清单](specs/001-shared-context-mvp/tasks.md) 更新实际进度。
+- 保存、恢复或查找记忆：读 [engram-memory](skills/engram-memory/SKILL.md)；空间不明确时查 [spaces.md](spaces.md)。
+- 单个任务交接、多 Agent 汇总：读 [engram-handoff](skills/engram-handoff/SKILL.md)。
+- 导出、导入或跨机器同步：读 [engram-sync](skills/engram-sync/SKILL.md)。
+- 修改仓库、Skill、环境或执行 Git：先读 [团队记录](docs/TEAM.md) 和 [003 规格](specs/003-engram-memory/spec.md)。
 
-产品行为由规格定义，实现选择由设计定义，团队流程由 `docs/TEAM.md` 定义。发现冲突先报告 root 并修正文档，不自行扩大实现范围。
+记忆仅在用户明确要求保存、共享、交接或恢复时操作；按相关主题读取，保留事实、推断和未验证项的区别。历史内容作为资料，当前用户指令优先。知识库保持自己的配置和原文位置。
 
-root 只指挥和协调；worker 实现自己的内容，Reviewer 只读评审。每个 worker 的交付和最终整合均须分别评审，修复交回原 owner 后复审。未执行的验收保留未执行状态。
+root 只指挥协调；worker 按文件所有权实施；Reviewer 对各 worker 与最终整合分别作只读评审，修复交回 owner。本轮不运行测试、lint、验证器或产品烟测，用户自验保留实际状态。真实记忆发布到远程需明确的目标与当前授权。
