@@ -2,14 +2,14 @@
 
 日期：2026-11-10。用户已要求围绕常用场景开始搭建并配置本机环境。本规格取代自研 `sctx` 的当前产品方向；旧实现与规格保留在 `sctx-v0.2.0`（`9f73af9`），不自动转换旧 `sctx` 数据库内容，不继续维护双套存储。已有 Engram 数据由环境 owner 一致性复制并保留原库。
 
-用户随后明确要求推送代码，本次授权仅覆盖仓库骨架、文档、Skill 与旧源码退役；本机数据库、配置备份和真实记忆不属于发布范围。
+此前用户授权的仓库骨架、文档、Skill 与旧源码退役已完成发布；本机数据库、配置备份和真实记忆未发布。本轮按用户新增纠正收紧职责并保存一条真实记忆，不包含提交或推送。
 
 ## 范围与接口
 
-- 本仓库集中管理 Engram 记忆同步数据、空间约定与 Skill。外部 `fengdi-kb-agent` 保留自己的笔记、配置和索引；调用方按需搜索知识并在记忆中留下必要引用。
+- 本仓库仅保存合作续接所需的增量现场，管理 Engram 同步数据与使用约定。写入准入以 [engram-memory](../../skills/engram-memory/SKILL.md) 为唯一权威，按语义执行，不开发校验器、评分器或分类器。外部 `fengdi-kb-agent` 保留自己的知识原文、配置和索引；查资料时直接使用它。
 - 直接使用本机 Engram。MCP 仅暴露 `mem_search`、`mem_get_observation`、`mem_context`、`mem_timeline`、`mem_current_project`、`mem_list_projects`；写入由用户明确指令触发，通过 CLI `save` 执行。不运行官方自动记忆 setup/hook，不新建 HTTP 常驻服务。
 - 本机环境文件为 `.local/engram.env`：`ENGRAM_BIN` 为实际可执行文件绝对路径，`ENGRAM_DATA_DIR` 为本仓库 `.local/engram` 的绝对路径，`ENGRAM_REPO` 为 canonical 仓库绝对路径。后者是本仓库的定位约定，非官方参数。Shell 通过 `~/.zshenv` 加载，MCP 显式使用相同数据目录；现有宿主重启后加载。不固定全局 `ENGRAM_PROJECT`，不因切换工作目录而换库。
-- 读写显式选择 project，首轮统一默认 `scope=project`，包括名为 `personal` 的空间；空间彼此不自动继承。稳定 topic 更新已有主题，Engram 自有版本行为沿用，不承诺无历史增长。
+- 读写由 Agent 根据当前合作对象定位 project 和 topic，用户不必填写命名；仅有实质歧义才询问。默认 `scope=project`，包括名为 `personal` 的空间，空间彼此不自动继承。命名见 [spaces.md](../../spaces.md)，不按前缀机械迁移已有内容；同一主题提交完整新结论，原生版本行为沿用。
 - 搜索先返回候选，完整正文按需读取。恢复与交接只处理当前任务需要的材料，当前用户指令优先。
 - `engram-memory` 负责原子读写；`engram-handoff` 负责单任务交接与多 Agent 材料汇总；`engram-sync` 负责本地导出、导入及按授权执行 Git。Skill 正本位于本仓库，客户端安装副本由 B 维护。
 - 跨机器以 `sync --all` 导出 `.engram/manifest.json` 与 `chunks/`，经 Git 传输后 `sync --import --all` 写入各机器数据库。默认不包含原始 prompts；包含 prompts 需要明确选择。Git Sync 不等同于完整 SQLite 备份。
@@ -27,9 +27,11 @@
 | 编写并安装三个 Skill | B | 独立静态复审通过并已整合；Codex / Cursor / Qoder 共 9 个 Skill 目录已安装，匹配旧版的 6 个副本备份后退役 |
 | A/B 分别评审、owner 修复及最终整合评审 | Reviewer / A / B | A/B 分别静态复审与最终整合只读评审均已通过；宿主加载与真实场景未验收 |
 | 用户执行以下场景 | 用户 | 未执行 |
-| 提交并推送已授权仓库改造 | A | 用户已授权，交付进行中；具体提交与推送证据见交付报告 |
+| 提交并推送已授权仓库改造 | A | 已知 `b9e2f8b` 与旧版标签已正常发布；本轮不重复交付 |
+| 收紧职责、空间与主题说明 | A | 已完成，本轮增量静态复审通过 |
+| 调整 Skill 并保存一条用途纠正 | B | 增量静态复审通过；两个 Skill 已同步三个客户端共 6 份。用户授权记忆已保存为本机 `#1`，project=`shared-ai-context`、topic=`context/memory-purpose`；未导出或发布 |
 
-本轮只读检查环境事实、管理变更和独立评审；不运行测试、lint、Skill 验证器、产品烟测或真实跨机器演示，不写入测试记忆。配置写入、宿主加载与场景验收分别记录，不将生成文件标为已通过。
+本轮未运行测试、lint、Skill 验证器、产品烟测或跨机器演示，未写入测试条目；B 在候选通过后保存了一条用户明确要求的真实用途纠正，CLI 返回成功。该写入结果与完整场景验收分别记录，不据此宣称跨会话效果已验收。本轮未提交、推送或导出记忆。
 
 ## 用户自验
 

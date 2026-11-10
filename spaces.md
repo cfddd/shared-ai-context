@@ -1,6 +1,6 @@
 # 记忆空间与主题
 
-空间表示这条记忆属于哪项工作或生活领域，对应 Engram 的 `project`；可以覆盖多个仓库，也可以与代码无关。主题表示空间中可以独立读取、持续修订的稳定对象，对应现有 `topic_key`（CLI 的 `--topic`）。
+空间表示合作或任务归属，对应 Engram 的 `project`；可以跨仓库，也可以与代码无关。主题表示下一位 Agent 需要接续的具体对象，对应现有 `topic_key`（CLI 的 `--topic`）。先按 [记忆写入准入](skills/engram-memory/SKILL.md) 选择内容，再定位空间和主题；命名不构成保存理由。
 
 ## 空间
 
@@ -8,37 +8,32 @@
 
 | project | 用途 | topic 示例 |
 | --- | --- | --- |
-| `personal` | 协作偏好、长期目标、必要个人背景 | `preference/collaboration` |
-| `learning` | 学习进度、困惑和学习方法 | `progress/java-transactions` |
-| `work-risk-platform` | 跨 IAM、Admin、RiskReview 的工作经验与决定 | `decision/permission-flow` |
-| `shared-ai-context` | 本仓库的使用决定与待办 | `decision/memory-workflow` |
+| `personal` | 尚未固化进规则、需要跨任务延续的协作纠正 | `context/collaboration-correction` |
+| `learning` | 当前学习的卡点、已尝试路线和续接状态 | `handoff/java-transactions` |
+| `work-risk-platform` | 跨仓库任务的范围、执行状态和未固化取舍 | `handoff/permission-refactor` |
+| `shared-ai-context` | 本项目的协作背景、当前任务和用途纠正 | `context/memory-purpose` |
 
 读写明确指定 project。首轮统一默认 `scope=project`；`personal` 空间不会自动加载，也不提供隐私隔离。多个空间可以存放在同一个本机数据库中。
 
 ## 主题
 
-主题可采用 `前缀/对象名`。下列前缀只是可选命名约定，不是新字段、真实目录或强制枚举，也不要求与 `--type` 一一对应。按实际内容选择即可，不预建空记忆。
+新内容优先采用下面两种命名。前缀只是可读约定，不是新字段、真实目录、知识分类或强制枚举；不要求与 `--type` 一一对应，也不预建空记忆。
 
-| 类别 | 保存什么 | topic 示例 |
+| 主题 | 用途 | topic 示例 |
 | --- | --- | --- |
-| 偏好 `preference` | 协作方式、沟通习惯等持续偏好 | `preference/communication` |
-| 背景 `background` | 后续判断经常需要的稳定目标或约束 | `background/learning-goal` |
-| 决定 `decision` | 已选择的方案、理由和适用条件 | `decision/permission-flow` |
-| 经验 `lesson` | 做过之后值得记住的发现与适用条件 | `lesson/travel-planning` |
-| 做法 `workflow` | 已经用顺手、可以再次采用的简短步骤 | `workflow/note-review` |
-| 进度 `progress` | 当前阶段、未解决事项和下一步 | `progress/java-transactions` |
-| 交接 `handoff` | 让另一位 Agent 接续某项任务的必要状态 | `handoff/permission-refactor` |
+| `handoff/<任务名>` | 完整维护一项任务的合作现场与下一步 | `handoff/permission-refactor` |
+| `context/<具体协作事项>` | 少量跨会话延续、尚未固化的增量背景 | `context/memory-purpose` |
 
 ### 粒度与命名
 
-按能否独立变化、独立读取决定粒度。一条主题尽量围绕一个对象；先用能满足当前需要的名字，内容确实变杂后再拆。例如 `preference/collaboration` 同时容纳代码风格、沟通与 Git 习惯且经常分别修改时，再拆成 `preference/coding-style`、`preference/communication` 和 `preference/git-workflow`。
+Agent 从当前任务和已有记忆中定位或复用主题，用户不必填写 topic；能确定归属时直接选择，仅有实质歧义才询问。按能否独立变化、独立读取决定粒度，内容实际变杂后再拆。
 
-长期主题名保持稳定，日期、Agent 名和会话 ID 通常放在正文或引用里。空间相同也不自动建立主题层级：`decision/storage` 与 `decision/storage-backup` 只是两个可分别读取的名字。
+已有其他前缀的主题只要内容满足准入约定，仍可复用，不按名字机械删除或重命名。日期、Agent 名和会话 ID 通常放在正文或引用里。空间和前缀不产生自动继承或批量读取关系。
 
 ### 更新与交接
 
 更新已有主题时沿用相同 project、scope、topic，提交整理后的完整新结论：保留仍有效的事实和适用条件，修正过时内容，标明尚未确认的部分。不能只追加一句补充而丢掉原先仍有效的内容；Engram 会保留旧版本，版本保留不等于自动提炼。
 
-同一任务的 `progress` 与 `handoff` 选择一处维护完整当前状态，另一处若确有需要只写用途说明和引用，避免双份状态逐渐不一致。多个 Agent 优先分别维护自己负责的主题，再由一个汇总者整理共同交接。
+同一任务优先在一个 `handoff` 主题维护完整现场；已有 `progress` 若已承担此职责可沿用，其他主题只保留必要引用，避免双份状态逐渐不一致。多个 Agent 按实际协作对象分工，再由一个汇总者整理共同交接。
 
 空间与知识库无需一一对应。引用知识时使用工具名、domain 和相对笔记路径；路径解释与原文维护交给 `fengdi-kb-agent` 自己的配置。

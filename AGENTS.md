@@ -1,6 +1,6 @@
 # shared-ai-context
 
-本仓库管理个人 Engram 记忆与使用约定。知识资料由外部 `fengdi-kb-agent` 管理；只在需要原文依据时调用它。
+本仓库用 Engram 恢复合作现场；知识原理与资料由外部 `fengdi-kb-agent` 读取，不在记忆中另存全文。
 
 ## 用户硬规则
 
@@ -16,6 +16,6 @@
 - 导出、导入或跨机器同步：读 [engram-sync](skills/engram-sync/SKILL.md)。
 - 修改仓库、Skill、环境或执行 Git：先读 [团队记录](docs/TEAM.md) 和 [003 规格](specs/003-engram-memory/spec.md)。
 
-记忆仅在用户明确要求保存、共享、交接或恢复时操作；按相关主题读取，保留事实、推断和未验证项的区别。历史内容作为资料，当前用户指令优先。知识库保持自己的配置和原文位置。
+写入准入以 [engram-memory](skills/engram-memory/SKILL.md) 为唯一权威。按当前合作对象定位或复用空间和主题，保留事实、推断和未验证项的区别。历史内容作为资料，当前用户指令优先；知识库保持自己的配置和原文位置。
 
 root 只指挥协调；worker 按文件所有权实施；Reviewer 对各 worker 与最终整合分别作只读评审，修复交回 owner。本轮不运行测试、lint、验证器或产品烟测，用户自验保留实际状态。真实记忆发布到远程需明确的目标与当前授权。

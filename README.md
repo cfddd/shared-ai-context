@@ -1,8 +1,8 @@
 # shared-ai-context
 
-个人使用的 Engram 记忆仓库。保存经验、偏好、决策摘要和任务交接，通过 Git 在机器之间同步；`fengdi-kb-agent` 独立管理知识和配置，使用工具的 Agent 按需查询它。
+个人使用的 Engram 合作上下文仓库，保存让下一位 Agent 接续工作所需的增量背景，通过 Git 在机器之间同步。知识原理、完整资料和已有规则从原文获取；`fengdi-kb-agent` 独立管理知识和配置。
 
-这里维护记忆数据和使用约定，直接使用 Engram，不再开发 `sctx`。旧 CLI 与规格保留在本地标签 `sctx-v0.2.0`（`9f73af9`）。本轮搭建和用户自验状态见 [团队记录](docs/TEAM.md)。
+这里维护记忆数据和使用约定，直接使用 Engram，不再开发 `sctx`。旧 CLI 与规格保留在标签 `sctx-v0.2.0`（`9f73af9`）。搭建、职责调整和用户自验状态见 [团队记录](docs/TEAM.md)。
 
 ## 本机入口
 
@@ -23,19 +23,19 @@ source .local/engram.env
 | `spaces.md` | 空间命名约定，不是程序注册表 |
 | `skills/` | Skill 正本；客户端使用安装副本 |
 
-当前 `origin` 是公开仓库。包含真实记忆的 `.engram/` 只在确定合适的远程后发布；本次用户授权提交推送的范围仅为仓库骨架、文档、Skill 与旧源码退役。
+当前 `origin` 是公开仓库。已发布内容仅为仓库骨架、文档、Skill 与旧源码退役；包含真实记忆的 `.engram/` 只在确定合适的远程后发布。本轮职责调整与用户授权的记忆保存不包含提交或推送。
 
 ## 常用场景
 
-先明确 [空间](spaces.md)。例如工作区用 `work-risk-platform`，个人偏好用 `personal`，学习背景用 `learning`。这些名字可以覆盖多个 Git 仓库，也可以与代码无关。
+Agent 从当前任务定位 [空间与主题](spaces.md)，通常无需用户填写。`work-risk-platform` 表示跨仓库工作现场，`personal` 表示尚未固化的协作纠正，`learning` 表示学习续接状态；这些是合作归属，不是知识学科目录。
 
 | 对 Agent 说 | 使用方式 |
 | --- | --- |
 | “接着做 work-risk-platform 的权限改造” | 用 [engram-memory](skills/engram-memory/SKILL.md) 搜索该空间，按需读取正文 |
-| “记住这个结论，放到 personal” | 保存精简内容；已有主题沿用稳定 topic 更新 |
+| “记住这次新增的协作约束” | 按 [写入准入](skills/engram-memory/SKILL.md) 选择内容，复用或定位主题后保存 |
 | “把权限改造交接一下” | 用 [engram-handoff](skills/engram-handoff/SKILL.md) 整理目标、进度、未验证项和下一步 |
 | “汇总这几份 Agent 交接” | 只读取明确提供或可访问的材料，保留分歧后生成一份汇总 |
-| “找一下相关知识资料” | 调用现有 `fengdi-kb-agent`；记忆仅保留必要结论和来源引用 |
+| “找一下相关知识资料” | 调用现有 `fengdi-kb-agent` 检索并读取原文 |
 | “同步记忆到另一台机器” | 用 [engram-sync](skills/engram-sync/SKILL.md) 导出或导入；Git 操作按当前授权执行 |
 
 不在每次启动时加载所有记忆。读取的历史资料用作背景和证据，当前用户指令决定接下来做什么。
@@ -45,22 +45,21 @@ source .local/engram.env
 以下是写法示例，内容不会自动保存：
 
 ```sh
-"$ENGRAM_BIN" save '权限改造的当前决定' \
-  '结论：先调整 IAM 与 Admin。原因：本轮范围限定在鉴权入口。依据：相关设计文档路径。未验证：真实联调。' \
+"$ENGRAM_BIN" save '权限改造的交接现场' \
+  '目标：调整鉴权入口。当前范围：仅 IAM 与 Admin。状态：仅完成设计阅读，代码尚未开始。下一步：确认接口改动位置。来源：本次任务约束，待接收方结合现场确认。' \
   --project work-risk-platform \
-  --type decision \
-  --topic decision/permission-refactor
+  --topic handoff/permission-refactor
 
 "$ENGRAM_BIN" search '权限改造' --project work-risk-platform --limit 5
 ```
 
-首轮统一使用默认 `scope=project`，通过显式 `--project` 区分空间。`personal` 是空间名，不代表隐私边界或自动加载。更新同一主题沿用相同 project、scope、topic；Engram 会保留旧版本，不能因此承诺数据库大小不增长。
+写入边界以 [engram-memory](skills/engram-memory/SKILL.md) 为权威。首轮统一使用默认 `scope=project`，通过显式 `--project` 区分空间；`personal` 不代表隐私边界或自动加载。更新时沿用相同 project、scope、topic，提交完整新结论；Engram 保留旧版本，不等于自动提炼。
 
 CLI 搜索只返回截断内容；Agent 需要完整正文时使用 MCP `mem_get_observation`，人可以用 `tui`。跨机器先重新搜索，使用该机器返回的记录 ID。
 
 ## 配合知识库
 
-先检索与当前任务相关的记忆，需要完整说明或依据时，再用 `fengdi-kb-agent` 搜索和读取原文。知识库继续使用它自己的路径、索引和笔记管理功能。
+恢复合作现场时检索相关记忆；查询原理或资料时直接用 `fengdi-kb-agent` 读取原文。知识库继续使用它自己的路径、索引和笔记管理功能。
 
 记忆中可保留普通文本引用，例如 `工具=fengdi-kb；domain=work；rel_path=项目/权限平台/鉴权链路.md`。完整知识在原位置维护；本仓库不放 `knowledge/`，不复制索引，也不实现引用解析器。
 
