@@ -1,6 +1,6 @@
 # 记忆空间与主题
 
-空间表示合作或任务归属，对应 Engram 的 `project`；可以跨仓库，也可以与代码无关。主题表示下一位 Agent 需要接续的具体对象，对应现有 `topic_key`（CLI 的 `--topic`）。先按 [记忆写入准入](skills/engram-memory/SKILL.md) 选择内容，再定位空间和主题；命名不构成保存理由。
+空间表示合作或任务归属，对应 Engram 的 `project`；可以跨仓库，也可以与代码无关。主题表示需要续接的任务或值得复用的具体经历，对应现有 `topic_key`（CLI 的 `--topic`）。先按 [记忆写入准入](skills/engram-memory/SKILL.md) 选择内容，再定位空间和主题；命名不构成保存理由。
 
 ## 空间
 
@@ -8,10 +8,10 @@
 
 | project | 用途 | topic 示例 |
 | --- | --- | --- |
-| `personal` | 尚未固化进规则、需要跨任务延续的协作纠正 | `context/collaboration-correction` |
-| `learning` | 当前学习的卡点、已尝试路线和续接状态 | `handoff/java-transactions` |
-| `work-risk-platform` | 跨仓库任务的范围、执行状态和未固化取舍 | `handoff/permission-refactor` |
-| `shared-ai-context` | 本项目的协作背景、当前任务和用途纠正 | `context/memory-purpose` |
+| `personal` | 个人协作中学到的约束、反馈与可复用经验 | `context/collaboration-correction` |
+| `learning` | 学习任务续接，以及实际尝试中学到的条件性方法 | `handoff/java-transactions` |
+| `work-risk-platform` | 跨仓库任务现场及实际工作中可复用的判断或策略 | `handoff/permission-refactor` |
+| `shared-ai-context` | 本项目的任务背景、用途纠正与实践所得 | `context/memory-purpose` |
 
 读写明确指定 project。首轮统一默认 `scope=project`；`personal` 空间不会自动加载，也不提供隐私隔离。多个空间可以存放在同一个本机数据库中。
 
@@ -22,7 +22,7 @@
 | 主题 | 用途 | topic 示例 |
 | --- | --- | --- |
 | `handoff/<任务名>` | 完整维护一项任务的合作现场与下一步 | `handoff/permission-refactor` |
-| `context/<具体协作事项>` | 少量跨会话延续、尚未固化的增量背景 | `context/memory-purpose` |
+| `context/<具体事项>` | 跨会话可复用的经历、约束或纠正 | `context/memory-purpose` |
 
 ### 粒度与命名
 
@@ -34,6 +34,8 @@ Agent 从当前任务和已有记忆中定位或复用主题，用户不必填�
 
 更新已有主题时沿用相同 project、scope、topic，提交整理后的完整新结论：保留仍有效的事实和适用条件，修正过时内容，标明尚未确认的部分。不能只追加一句补充而丢掉原先仍有效的内容；Engram 会保留旧版本，版本保留不等于自动提炼。
 
-同一任务优先在一个 `handoff` 主题维护完整现场；已有 `progress` 若已承担此职责可沿用，其他主题只保留必要引用，避免双份状态逐渐不一致。多个 Agent 按实际协作对象分工，再由一个汇总者整理共同交接。
+工作现场与可复用经验是两种用途，仍使用同一存储和主题机制。同一任务优先在一个 `handoff` 主题维护完整现场；已有 `progress` 若已承担此职责可沿用，其他主题只保留必要引用，避免双份状态逐渐不一致。多个 Agent 按实际协作对象分工，再由一个汇总者整理共同交接。
+
+显式整理或纠正已有记忆时按 [复核纠错](skills/engram-memory/references/review.md) 处理，保留原始证据缺口和不确定性；仅要求复核时不改写。
 
 空间与知识库无需一一对应。引用知识时使用工具名、domain 和相对笔记路径；路径解释与原文维护交给 `fengdi-kb-agent` 自己的配置。

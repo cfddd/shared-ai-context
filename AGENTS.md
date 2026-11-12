@@ -1,6 +1,6 @@
 # shared-ai-context
 
-本仓库用 Engram 恢复合作现场；知识原理与资料由外部 `fengdi-kb-agent` 读取，不在记忆中另存全文。
+本仓库用 Engram 续接工作，并保留实际经历中学到的可复用经验；知识原理与资料由外部 `fengdi-kb-agent` 读取，不在记忆中另存全文。
 
 ## 用户硬规则
 
@@ -13,6 +13,7 @@
 
 - 保存、恢复或查找记忆：读 [engram-memory](skills/engram-memory/SKILL.md)；空间不明确时查 [spaces.md](spaces.md)。
 - 单个任务交接、多 Agent 汇总：读 [engram-handoff](skills/engram-handoff/SKILL.md)。
+- 显式复核或纠正记忆：读 [复核纠错](skills/engram-memory/references/review.md)，区分只读结论与已授权更新。
 - 导出、导入或跨机器同步：读 [engram-sync](skills/engram-sync/SKILL.md)。
 - 修改仓库、Skill、环境或执行 Git：先读 [团队记录](docs/TEAM.md) 和 [003 规格](specs/003-engram-memory/spec.md)。
 
