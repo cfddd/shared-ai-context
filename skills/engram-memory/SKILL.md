@@ -41,6 +41,16 @@ CLI 可用来定位：
 "$ENGRAM_BIN" search "记忆仓库" --project shared-ai-context --limit 5
 ```
 
+Engram 3.7.0 的中文检索不是语义搜索。中文复合词没有命中时，把词拆成空格分隔的检索词再试，并优先搜索最能区分主题的短词；例如记忆标题为“中文写作与飞书文档呈现偏好”时，`写作偏好` 可能没有命中，`写作 偏好` 或 `写作` 可以命中。这里是当前 CLI 的使用经验，不把它当作稳定的中文分词协议。
+
+Engram CLI 默认会在命令启动时检查 GitHub 更新。网络限流产生的更新提示不影响本地搜索或保存；脚本、CI 或希望安静运行时可以关闭本次检查：
+
+```sh
+ENGRAM_NO_UPDATE_CHECK=1 "$ENGRAM_BIN" search "写作 偏好" --project personal --limit 5
+```
+
+如果需要保留更新检查，给 GitHub API 配置 `GH_TOKEN` 或 `GITHUB_TOKEN` 可以减少未认证请求的限流；这与本地记忆库的搜索结果无关。
+
 CLI 搜索会截断正文，当前没有 `get` 子命令；需要完整内容时使用 MCP 的 `mem_get_observation`，人工浏览可用 `"$ENGRAM_BIN" tui`。
 
 ## 保存或更新
