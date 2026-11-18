@@ -1,0 +1,52 @@
+spaces.md
+  s_9dc79572d6ca63::t_c649e72e78808b 13,18
+  s_9dc79572d6ca63::t_27455376cd1138 19
+skills/engram-handoff/SKILL.md
+  s_9dc79572d6ca63::t_60c408d2e024de 10
+specs/003-engram-memory/spec.md
+  s_9dc79572d6ca63::t_70b5a211da47c0 12
+  s_9dc79572d6ca63::t_ecfb4bd7212301 13-15
+README.md
+  s_9dc79572d6ca63::t_abbaa0d761037c 59
+  s_9dc79572d6ca63::t_5b8ad8af2e891b 52-53,56
+  s_9dc79572d6ca63::t_28d3bab9f4f104 30
+  s_9dc79572d6ca63::t_c5105a0523cac5 34
+skills/engram-memory/SKILL.md
+  s_9dc79572d6ca63::t_a4159194e73230 25-26
+docs/TEAM.md
+  s_6653b2afe5446c::t_88c6a63a08102f 3,10-11,27,44,53,55-69
+skills/engram-memory/references/review.md
+  s_46073ecdf6fae9::t_fbfb6066c307c3 7-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "f6546d7da4b347efeefc1b54204f3dae057e5e69",
+  "prompts": {},
+  "sessions": {
+    "s_46073ecdf6fae9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1e86e-b2f2-7533-a2cd-b2b279568d4a",
+        "model": "unknown"
+      },
+      "human_author": "fengdi.chang01 <fengdi.chang01@lkcoffee.com>"
+    },
+    "s_6653b2afe5446c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1e86f-77d7-7191-84c2-f6fcfaa91a7f",
+        "model": "unknown"
+      },
+      "human_author": "fengdi.chang01 <fengdi.chang01@lkcoffee.com>"
+    },
+    "s_9dc79572d6ca63": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "32843afa-ffaa-46b8-9458-9d5b26086e0a",
+        "model": "grok-4.7"
+      },
+      "human_author": "fengdi.chang01 <fengdi.chang01@lkcoffee.com>"
+    }
+  }
+}
