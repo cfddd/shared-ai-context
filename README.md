@@ -27,11 +27,11 @@ source .local/engram.env
 
 ## 常用场景
 
-Agent 从当前工作定位 [空间与主题](spaces.md)，通常无需用户填写。`work-risk-platform` 表示跨仓库合作，`personal` 表示个人协作背景与经历，`learning` 表示学习任务及实际尝试；这些是合作归属，不是知识学科目录。
+Agent 从当前工作定位 [空间与主题](spaces.md)，通常无需用户填写。`work` 表示实际工作，默认 org `lucky` 表示瑞幸；`personal` 表示个人协作背景与经历，`learning` 表示学习任务及实际尝试。这些是合作归属，不是知识学科目录。
 
 | 对 Agent 说 | 使用方式 |
 | --- | --- |
-| “接着做 work-risk-platform 的权限改造” | 用 [engram-memory](skills/engram-memory/SKILL.md) 搜索该空间，按需读取正文 |
+| “接着做瑞幸这边的权限改造” | 用 [engram-memory](skills/engram-memory/SKILL.md) 搜索 `work` 且 org 为 `lucky`，按需读取正文 |
 | “记住这次新增的协作约束” | 按 [写入准入](skills/engram-memory/SKILL.md) 选择内容，复用或定位主题后保存 |
 | “记住这次实际学到的做法，注明适用条件” | 用同一准入判断经验是否值得保留，记录来源与尚未确认的判断 |
 | “把权限改造交接一下” | 用 [engram-handoff](skills/engram-handoff/SKILL.md) 整理目标、进度、未验证项和下一步 |
@@ -49,13 +49,14 @@ Agent 从当前工作定位 [空间与主题](spaces.md)，通常无需用户填
 ```sh
 "$ENGRAM_BIN" save '权限改造的交接现场' \
   '目标：调整鉴权入口。当前范围：仅 IAM 与 Admin。状态：仅完成设计阅读，代码尚未开始。下一步：确认接口改动位置。来源：本次任务约束，待接收方结合现场确认。' \
-  --project work-risk-platform \
+  --project work \
+  --org lucky \
   --topic handoff/permission-refactor
 
-"$ENGRAM_BIN" search '权限改造' --project work-risk-platform --limit 5
+"$ENGRAM_BIN" search '权限改造' --project work --org lucky --limit 5
 ```
 
-写入边界以 [engram-memory](skills/engram-memory/SKILL.md) 为权威。首轮统一使用默认 `scope=project`，通过显式 `--project` 区分空间；`personal` 不代表隐私边界或自动加载。更新时沿用相同 project、scope、topic，提交完整新结论；Engram 保留旧版本，不等于自动提炼。需要整理或纠错时显式选择小范围 [复核流程](skills/engram-memory/references/review.md)，不常驻扫描全部记忆。
+写入边界以 [engram-memory](skills/engram-memory/SKILL.md) 为权威。首轮统一使用默认 `scope=project`，通过显式 `--project` 区分空间；写入 `work` 时默认再带 `--org lucky`。`personal` 不代表隐私边界或自动加载。更新时沿用相同 project、scope、topic 和 org，提交完整新结论；Engram 保留旧版本，不等于自动提炼。需要整理或纠错时显式选择小范围 [复核流程](skills/engram-memory/references/review.md)，不常驻扫描全部记忆。
 
 CLI 搜索只返回截断内容；Agent 需要完整正文时使用 MCP `mem_get_observation`，人可以用 `tui`。跨机器先重新搜索，使用该机器返回的记录 ID。
 

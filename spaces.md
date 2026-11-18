@@ -10,10 +10,12 @@
 | --- | --- | --- |
 | `personal` | 个人协作中学到的约束、反馈与可复用经验 | `context/collaboration-correction` |
 | `learning` | 学习任务续接，以及实际尝试中学到的条件性方法 | `handoff/java-transactions` |
-| `work-risk-platform` | 跨仓库任务现场及实际工作中可复用的判断或策略 | `handoff/permission-refactor` |
+| `work` | 实际工作中可复用的判断，以及跨仓库任务现场 | `context/lucp-ai-metrics-report` |
 | `shared-ai-context` | 本项目的任务背景、用途纠正与实践所得 | `context/memory-purpose` |
 
 读写明确指定 project。首轮统一默认 `scope=project`；`personal` 空间不会自动加载，也不提供隐私隔离。多个空间可以存放在同一个本机数据库中。
+
+`work` 里用 Engram 的 `org` 区分公司。默认 org 是 `lucky`，表示瑞幸。写入这个空间时带 `--org lucky`；只有用户明确说不是瑞幸时才换 org。`lucky` 不是仓库名，也不是另一个 project。
 
 ## 主题
 

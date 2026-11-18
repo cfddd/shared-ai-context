@@ -7,7 +7,7 @@ description: 用户明确要求交接任务、汇总多个 Agent 的进展，或
 
 ## 保存交接
 
-按 [engram-memory 的写入准入与维护方式](../engram-memory/SKILL.md) 判断和保存。Agent 根据当前任务选空间与续接 topic，用户无需手填；新任务优先用 `handoff/<任务名>`，已有合规同义主题则复用。从当前会话及用户提供的材料整理协作增量：
+按 [engram-memory 的写入准入与维护方式](../engram-memory/SKILL.md) 判断和保存。Agent 根据当前任务选空间与续接 topic，用户无需手填；新任务优先用 `handoff/<任务名>`，已有合规同义主题则复用。瑞幸的工作交接写入 `work`，并带 org `lucky`。从当前会话及用户提供的材料整理协作增量：
 
 ```text
 目标：本轮要完成什么。
